@@ -6,6 +6,11 @@
 #define RIGHT_INDICATOR 3
 #define LEFT_BUTTON 4
 #define RIGHT_BUTTON 5
+
+#define LEFT_INDICATOR_ON 0b10
+#define RIGHT_INDICATOR_ON 0b01
+#define BOTH_INDICATORS_OFF 0b00
+
 int SentMessage[1] = {0b00};
 
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
@@ -58,13 +63,19 @@ void loop(void) {
 
   if (light_high) {
     if (left_turn_indicator_activated) {
-      SentMessage[0] = 0b10;
+      digitalWrite(LEFT_INDICATOR, HIGH);
+      digitalWrite(RIGHT_INDICATOR, LOW);
+      SentMessage[0] = LEFT_INDICATOR_ON;
 
     } else if (right_turn_indicator_activated) {
-      SentMessage[0] = 0b01;
+      digitalWrite(RIGHT_INDICATOR, HIGH);
+      digitalWrite(LEFT_INDICATOR, LOW);
+      SentMessage[0] = RIGHT_INDICATOR_ON;
     }
   } else {
-    SentMessage[0] = 0b00;
+    digitalWrite(LEFT_INDICATOR, LOW);
+    digitalWrite(RIGHT_INDICATOR, LOW);
+    SentMessage[0] = BOTH_INDICATORS_OFF;
   }
 
   radio.write(SentMessage, 1);
