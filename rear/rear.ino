@@ -1,15 +1,13 @@
-
-// Include needed Libraries at beginning
 #include "RF24.h"
 #include "SPI.h"
-#include "nRF24L01.h" // NRF24L01 library created by TMRh20 https://github.com/TMRh20/RF24
+#include "nRF24L01.h"
 
 #define LEFT_INDICATOR 2
 #define RIGHT_INDICATOR 3
 
 int ReceivedMessage[1] = {0}; // Used to store value received by the NRF24L01
 
-RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the UNO
+RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 
  // Identifier 
 const uint64_t pipe = 0xE6E6E6E6E6E5;
