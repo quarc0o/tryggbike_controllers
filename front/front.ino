@@ -38,7 +38,7 @@ void loop(void) {
 
   // Delay per iteration
   static constexpr unsigned int delay_time{10};   // [ms]
-  static constexpr unsigned int cycle_length{60}; // iterations
+  static constexpr unsigned int cycle_length{40}; // iterations
   counter = (counter + 1) % cycle_length;
   delay(delay_time);
 
