@@ -1,44 +1,79 @@
+#include <stdint.h>
+
+// Interrupt
+#include <SAMDTimerInterrupt.h>
+#include <SAMDTimerInterrupt.hpp>
+#include <SAMD_ISR_Timer.h>
+#include <SAMD_ISR_Timer.hpp>
+
+// Radio
 #include "RF24.h"
 #include "SPI.h"
 #include "nRF24L01.h"
 
-#define LEFT_INDICATOR 2
-#define RIGHT_INDICATOR 3
+#define LEFT_INDICATOR_PIN 2
+#define RIGHT_INDICATOR_PIN 3
 
-int ReceivedMessage[1] = {0}; // Used to store value received by the NRF24L01
+enum Indicator {
+  INDICATOR_LEFT = 0,
+  INDICATOR_RIGHT = 1,
+  INDICATOR_MSG_LENGTH
+};
 
+uint8_t ReceivedMessage[INDICATOR_MSG_LENGTH] = {LOW,
+                                                 LOW};
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
-
- // Identifier 
+// Identifier
 const uint64_t pipe = 0xE6E6E6E6E6E5;
+
+static long kHardwareTimerMs{1000L};
+SAMDTimer timer{TIMER_TC3};
+static long kTimerMs{static_cast<long>(1000.0 / kHardwareTimerMs)};
+SAMD_ISR_Timer isr_timer;
+
+void timerHandler(void) { isr_timer.run(); }
+
+void radioInterrupt(void);
+void imuInterrupt(void);
 
 void setup(void) {
   Serial.begin(9600);
-  pinMode(LEFT_INDICATOR, OUTPUT);
-  pinMode(RIGHT_INDICATOR, OUTPUT);
+  pinMode(LEFT_INDICATOR_PIN, OUTPUT);
+  pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
 
   radio.begin();
   radio.openReadingPipe(1, pipe);
   radio.startListening();
+
+  bool timer_success{
+      timer.attachInterruptInterval(kHardwareTimerMs * 1, timerHandler)};
+  if (!timer_success) {
+    Serial.println("Unable to start timer!");
+  }
+  isr_timer.setInterval(kTimerMs * 10, radioInterrupt);
+  // isr_timer.setInterval(kTimerMs*10, imuInterrupt);
 }
 
-void loop(void) {
+void loop(void) {}
 
-  while (radio.available()) {
-    radio.read(ReceivedMessage, 1);
-    if (ReceivedMessage[0] == 0b10) // Turn on left indicator
-    {
-      digitalWrite(LEFT_INDICATOR, HIGH);
-      digitalWrite(RIGHT_INDICATOR, LOW);
-    } else if (ReceivedMessage[0] == 0b01) // Turn on right indicator
-    {
-      digitalWrite(RIGHT_INDICATOR, HIGH);
-      digitalWrite(LEFT_INDICATOR, LOW);
+void radioInterrupt(void) {
+  // Serial.println("Entering radio interrupt!");
+  if (radio.available()) {
+    radio.read(ReceivedMessage, INDICATOR_MSG_LENGTH);
+    if (ReceivedMessage[INDICATOR_LEFT] == HIGH) {
+      digitalWrite(LEFT_INDICATOR_PIN, HIGH);
+      digitalWrite(RIGHT_INDICATOR_PIN, LOW);
+    } else if (ReceivedMessage[INDICATOR_RIGHT] == HIGH) {
+      digitalWrite(RIGHT_INDICATOR_PIN, HIGH);
+      digitalWrite(LEFT_INDICATOR_PIN, LOW);
     } else {
-      digitalWrite(LEFT_INDICATOR, LOW);
-      digitalWrite(RIGHT_INDICATOR, LOW);
+      digitalWrite(LEFT_INDICATOR_PIN, LOW);
+      digitalWrite(RIGHT_INDICATOR_PIN, LOW);
     }
-    Serial.println(ReceivedMessage[0]);
-    delay(10);
+    Serial.println("Received message with payload " +
+                 String(ReceivedMessage[0]) + ", " +
+                  String(ReceivedMessage[1]));
   }
 }
+
+void imuInterrupt(void) { Serial.println("Entering IMU interrupt!"); }

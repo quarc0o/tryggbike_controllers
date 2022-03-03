@@ -1,17 +1,22 @@
+#include <stdint.h>
+
+// Radio
 #include "RF24.h"
 #include "SPI.h"
 #include "nRF24L01.h"
 
-#define LEFT_INDICATOR 2
-#define RIGHT_INDICATOR 3
+#define LEFT_INDICATOR_PIN 2
+#define RIGHT_INDICATOR_PIN 3
 #define LEFT_BUTTON 4
 #define RIGHT_BUTTON 5
 
-#define LEFT_INDICATOR_ON 0b10
-#define RIGHT_INDICATOR_ON 0b01
-#define BOTH_INDICATORS_OFF 0b00
+enum Indicator {
+  INDICATOR_LEFT = 0,
+  INDICATOR_RIGHT = 1,
+  INDICATOR_MSG_LENGTH
+};
 
-int SentMessage[1] = {0b00};
+uint8_t SentMessage[INDICATOR_MSG_LENGTH] = {LOW, LOW};
 
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 
@@ -21,10 +26,10 @@ const uint64_t pipe =
 void setup(void) {
   Serial.begin(9600);
 
-  pinMode(LEFT_BUTTON, INPUT_PULLUP);
-  pinMode(RIGHT_BUTTON, INPUT_PULLUP);
-  pinMode(LEFT_INDICATOR, OUTPUT);
-  pinMode(RIGHT_INDICATOR, OUTPUT);
+  pinMode(LEFT_BUTTON, INPUT_PULLDOWN);
+  pinMode(RIGHT_BUTTON, INPUT_PULLDOWN);
+  pinMode(LEFT_INDICATOR_PIN, OUTPUT);
+  pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
 
   radio.begin();               // Start the NRF24L01
   radio.openWritingPipe(pipe); // Get NRF24L01 ready to transmit
@@ -38,7 +43,7 @@ void loop(void) {
 
   // Delay per iteration
   static constexpr unsigned int delay_time{10};   // [ms]
-  static constexpr unsigned int cycle_length{40}; // iterations
+  static constexpr unsigned int cycle_length{60}; // iterations
   counter = (counter + 1) % cycle_length;
   delay(delay_time);
 
@@ -62,21 +67,16 @@ void loop(void) {
   light_high = counter < (cycle_length / 2);
 
   if (light_high) {
-    if (left_turn_indicator_activated) {
-      digitalWrite(LEFT_INDICATOR, HIGH);
-      digitalWrite(RIGHT_INDICATOR, LOW);
-      SentMessage[0] = LEFT_INDICATOR_ON;
+    SentMessage[INDICATOR_LEFT] = left_turn_indicator_activated ? HIGH : LOW;
+    SentMessage[INDICATOR_RIGHT] = right_turn_indicator_activated ? HIGH : LOW;
 
-    } else if (right_turn_indicator_activated) {
-      digitalWrite(RIGHT_INDICATOR, HIGH);
-      digitalWrite(LEFT_INDICATOR, LOW);
-      SentMessage[0] = RIGHT_INDICATOR_ON;
-    }
   } else {
-    digitalWrite(LEFT_INDICATOR, LOW);
-    digitalWrite(RIGHT_INDICATOR, LOW);
-    SentMessage[0] = BOTH_INDICATORS_OFF;
+    SentMessage[INDICATOR_LEFT] = LOW;
+    SentMessage[INDICATOR_RIGHT] = LOW;
   }
-
-  radio.write(SentMessage, 1);
+  digitalWrite(LEFT_INDICATOR_PIN, SentMessage[INDICATOR_LEFT]);
+  digitalWrite(RIGHT_INDICATOR_PIN, SentMessage[INDICATOR_RIGHT]);
+  radio.write(SentMessage, INDICATOR_MSG_LENGTH);
+  Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " +
+                 String(SentMessage[1]));
 }
