@@ -24,7 +24,7 @@ const uint64_t pipe =
     0xE6E6E6E6E6E5; // Needs to be the same for communicating between 2 NRF24L01
 
 void setup(void) {
-  Serial.begin(9600);
+  // Serial.begin(9600);
 
   pinMode(LEFT_BUTTON, INPUT_PULLDOWN);
   pinMode(RIGHT_BUTTON, INPUT_PULLDOWN);
@@ -43,7 +43,7 @@ void loop(void) {
 
   // Delay per iteration
   static constexpr unsigned int delay_time{10};   // [ms]
-  static constexpr unsigned int cycle_length{60}; // iterations
+  static constexpr unsigned int cycle_length{34}; // iterations
   counter = (counter + 1) % cycle_length;
   delay(delay_time);
 
@@ -64,7 +64,7 @@ void loop(void) {
     right_turn_indicator_activated = false;
   }
 
-  light_high = counter < (cycle_length / 2);
+  light_high = counter < static_cast<unsigned int>(cycle_length / 2.0);
 
   if (light_high) {
     SentMessage[INDICATOR_LEFT] = left_turn_indicator_activated ? HIGH : LOW;
@@ -77,6 +77,5 @@ void loop(void) {
   digitalWrite(LEFT_INDICATOR_PIN, SentMessage[INDICATOR_LEFT]);
   digitalWrite(RIGHT_INDICATOR_PIN, SentMessage[INDICATOR_RIGHT]);
   radio.write(SentMessage, INDICATOR_MSG_LENGTH);
-  Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " +
-                 String(SentMessage[1]));
+  //Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " + String(SentMessage[1]));
 }
