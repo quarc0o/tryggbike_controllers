@@ -31,7 +31,7 @@ enum Indicator {
 uint8_t ReceivedMessage[INDICATOR_MSG_LENGTH] = {LOW, LOW};
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 // Identifier
-const uint64_t pipe = 0xE6E6E6E6E6E5;
+const uint64_t pipe = 0x6BAAD04ADD;
 
 static long kHardwareTimerMs{1000L};
 SAMDTimer timer{TIMER_TC3};

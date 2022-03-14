@@ -21,7 +21,7 @@ uint8_t SentMessage[INDICATOR_MSG_LENGTH] = {LOW, LOW};
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 
 const uint64_t pipe =
-    0xE6E6E6E6E6E5; // Needs to be the same for communicating between 2 NRF24L01
+    0x6BAAD04ADD; // Needs to be the same for communicating between 2 NRF24L01
 
 void setup(void) {
   // Serial.begin(9600);
