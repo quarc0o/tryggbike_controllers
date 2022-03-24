@@ -15,15 +15,15 @@
 #include <Arduino_LSM6DS3.h>
 #include <FIR.h>
 
-static constexpr float kBrakeLightActivateThreshold{0.03};   // [g]
+static constexpr float kBrakeLightActivateThreshold{0.001};  // [g]
 static constexpr float kBrakeLightDeactivateThreshold{-0.0}; // [g]
-static constexpr int kImuFilterWindowTime{200};  // [ms]
+static constexpr int kImuFilterWindowTime{100};  // [ms]
 static constexpr int kBrakeLightExtendTime{200}; // [ms]
 
 #define LEFT_INDICATOR_PIN 2
 #define RIGHT_INDICATOR_PIN 3
-#define BRAKE_LIGHT_PIN 7
-#define REAR_LIGHT_PIN 8
+#define REAR_LIGHT_PIN 7
+#define BRAKE_LIGHT_PIN 8
 
 enum Indicator {
   INDICATOR_LEFT = 0,
@@ -54,11 +54,13 @@ void radioInterrupt(void);
 void imuInterrupt(void);
 
 void setup(void) {
-  // Serial.begin(9600);
+  Serial.begin(9600);
   pinMode(LEFT_INDICATOR_PIN, OUTPUT);
   pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
 
   pinMode(BRAKE_LIGHT_PIN, OUTPUT);
+  pinMode(REAR_LIGHT_PIN, OUTPUT);
+  digitalWrite(REAR_LIGHT_PIN, HIGH);
 
   radio.begin();
   radio.openReadingPipe(1, pipe);
@@ -108,7 +110,7 @@ void imuInterrupt(void) {
   }
   z = filter.processReading(z);
   
-  // Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
+  Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
   
   if (-z > kBrakeLightActivateThreshold) {
     digitalWrite(BRAKE_LIGHT_PIN, HIGH);
