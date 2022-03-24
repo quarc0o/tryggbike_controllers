@@ -5,10 +5,12 @@
 #include "SPI.h"
 #include "nRF24L01.h"
 
-#define LEFT_INDICATOR_PIN 2
-#define RIGHT_INDICATOR_PIN 3
+#define LEFT_INDICATOR_PIN 3
+#define RIGHT_INDICATOR_PIN 2
 #define LEFT_BUTTON 4
 #define RIGHT_BUTTON 5
+#define FRONT_OUTER_LIGHTS 7
+#define FRONT_CENTER_LIGHTS 8
 
 enum Indicator {
   INDICATOR_LEFT = 0,
@@ -24,12 +26,17 @@ const uint64_t pipe =
     0x6BAAD04ADD; // Needs to be the same for communicating between 2 NRF24L01
 
 void setup(void) {
-  // Serial.begin(9600);
+  Serial.begin(9600);
 
   pinMode(LEFT_BUTTON, INPUT_PULLDOWN);
   pinMode(RIGHT_BUTTON, INPUT_PULLDOWN);
   pinMode(LEFT_INDICATOR_PIN, OUTPUT);
   pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
+  
+  pinMode(FRONT_OUTER_LIGHTS, OUTPUT);
+  pinMode(FRONT_CENTER_LIGHTS, OUTPUT);
+  digitalWrite(FRONT_OUTER_LIGHTS, LOW);
+  digitalWrite(FRONT_CENTER_LIGHTS, LOW);
 
   radio.begin();               // Start the NRF24L01
   radio.openWritingPipe(pipe); // Get NRF24L01 ready to transmit
@@ -77,5 +84,6 @@ void loop(void) {
   digitalWrite(LEFT_INDICATOR_PIN, SentMessage[INDICATOR_LEFT]);
   digitalWrite(RIGHT_INDICATOR_PIN, SentMessage[INDICATOR_RIGHT]);
   radio.write(SentMessage, INDICATOR_MSG_LENGTH);
-  //Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " + String(SentMessage[1]));
+  Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " +
+                 String(SentMessage[1]));
 }
