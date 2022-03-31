@@ -23,10 +23,10 @@ uint8_t SentMessage[INDICATOR_MSG_LENGTH] = {LOW, LOW};
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 
 const uint64_t pipe =
-    0x6BAAD04ADD; // Needs to be the same for communicating between 2 NRF24L01
+    0xE6E6A43BE6E5; // Needs to be the same for communicating between 2 NRF24L01
 
 void setup(void) {
-  Serial.begin(9600);
+  //Serial.begin(9600);
 
   pinMode(LEFT_BUTTON, INPUT_PULLDOWN);
   pinMode(RIGHT_BUTTON, INPUT_PULLDOWN);
@@ -84,6 +84,6 @@ void loop(void) {
   digitalWrite(LEFT_INDICATOR_PIN, SentMessage[INDICATOR_LEFT]);
   digitalWrite(RIGHT_INDICATOR_PIN, SentMessage[INDICATOR_RIGHT]);
   radio.write(SentMessage, INDICATOR_MSG_LENGTH);
-  Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " +
-                 String(SentMessage[1]));
+  //Serial.println("Sent message with payload " + String(SentMessage[0]) + ", " +
+  //               String(SentMessage[1]));
 }

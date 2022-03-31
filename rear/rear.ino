@@ -34,27 +34,27 @@ enum Indicator {
 uint8_t ReceivedMessage[INDICATOR_MSG_LENGTH] = {LOW, LOW};
 RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 // Identifier
-const uint64_t pipe = 0x6BAAD04ADD;
+const uint64_t pipe = 0xE6E6A43BE6E5;
 
 static constexpr long kHardwareTimerMs{1000L};
-SAMDTimer timer{TIMER_TC3};
+//SAMDTimer timer{TIMER_TC3};
 static constexpr long kTimerMs{static_cast<long>(1000.0 / kHardwareTimerMs)};
-SAMD_ISR_Timer isr_timer;
+//SAMD_ISR_Timer isr_timer;
 
 static constexpr long kRadioInterruptPeriod{10};  // [ms]
-static constexpr long kImuInterruptPeriod{20};    // [ms]
+static constexpr long kImuInterruptPeriod{10};    // [ms]
 
 
 static constexpr size_t kFilterWindow{kImuFilterWindowTime / kImuInterruptPeriod};
 static FIR<float, kFilterWindow> filter;
 
-void timerHandler(void) { isr_timer.run(); }
+//void timerHandler(void) { isr_timer.run(); }
 
 void radioInterrupt(void);
 void imuInterrupt(void);
 
 void setup(void) {
-  Serial.begin(9600);
+  //Serial.begin(9600);
   pinMode(LEFT_INDICATOR_PIN, OUTPUT);
   pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
 
@@ -71,19 +71,16 @@ void setup(void) {
   filter.setFilterCoeffs(coeffs);;
 
   IMU.begin();
-  bool timer_success{
-      timer.attachInterruptInterval(kHardwareTimerMs * 1, timerHandler)};
-  if (!timer_success) {
-    Serial.println("Unable to start timer!");
-  }
-  isr_timer.setInterval(kTimerMs * kRadioInterruptPeriod, radioInterrupt);
-  isr_timer.setInterval(kTimerMs * kImuInterruptPeriod, imuInterrupt);
 }
 
-void loop(void) {}
+void loop(void) {
+  imuInterrupt();
+  radioInterrupt();
+  delay(10);
+  }
 
 void radioInterrupt(void) {
-  // Serial.println("Entering radio interrupt!");
+  //Serial.println("Entering radio interrupt!");
   if (radio.available()) {
     radio.read(ReceivedMessage, INDICATOR_MSG_LENGTH);
     if (ReceivedMessage[INDICATOR_LEFT] == HIGH) {
@@ -96,8 +93,8 @@ void radioInterrupt(void) {
       digitalWrite(LEFT_INDICATOR_PIN, LOW);
       digitalWrite(RIGHT_INDICATOR_PIN, LOW);
     }
-    // Serial.println("Received message with payload " +
-    // String(ReceivedMessage[0]) + ", " + String(ReceivedMessage[1]));
+    //Serial.println("Received message with payload " +
+    //String(ReceivedMessage[0]) + ", " + String(ReceivedMessage[1]));
   }
 }
 
@@ -110,7 +107,7 @@ void imuInterrupt(void) {
   }
   z = filter.processReading(z);
   
-  Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
+  //Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
   
   if (-z > kBrakeLightActivateThreshold) {
     digitalWrite(BRAKE_LIGHT_PIN, HIGH);
