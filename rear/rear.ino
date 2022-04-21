@@ -17,11 +17,11 @@
 
 static constexpr double kDegToRad{3.1416/180};
 
-static constexpr double kBrakeLightActivateThreshold{-0.001}; // [g]
-static constexpr double kBrakeLightDeactivateThreshold{0.0};  // [g]
+static constexpr double kBrakeLightActivateThreshold{-0.15}; // [g]
+static constexpr double kBrakeLightDeactivateThreshold{-0.09};  // [g]
 static constexpr int kImuFilterWindowTime{100};  // [ms]
 static constexpr int kBrakeLightExtendTime{200}; // [ms]
-static constexpr double kMountingAngle{20*kDegToRad}; // [deg]
+static constexpr double kMountingAngle{17.75*kDegToRad}; // [deg]
 
 #define LEFT_INDICATOR_PIN 2
 #define RIGHT_INDICATOR_PIN 3
@@ -124,17 +124,19 @@ void imuInterrupt(void) {
   
   //Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
   
-  if (x > kBrakeLightActivateThreshold) {
+  if (x < kBrakeLightActivateThreshold) {
     digitalWrite(BRAKE_LIGHT_PIN, HIGH);
     light_extend_countdown = kBrakeLightExtendTime/kImuInterruptPeriod;
-  } else if (x < kBrakeLightDeactivateThreshold) {
+  } else if (x > kBrakeLightDeactivateThreshold) {
 
     if (light_extend_countdown == 0) {
       digitalWrite(BRAKE_LIGHT_PIN, LOW);
+      //Serial.println("Not braking");
     }
     else {
       digitalWrite(BRAKE_LIGHT_PIN, HIGH);
       light_extend_countdown--;
+      //Serial.println("Braking");
     }
   }
 }
