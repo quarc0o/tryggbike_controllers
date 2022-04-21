@@ -1,10 +1,10 @@
 #include <stdint.h>
 
 // Interrupt
-#include <SAMDTimerInterrupt.h>
-#include <SAMDTimerInterrupt.hpp>
-#include <SAMD_ISR_Timer.h>
-#include <SAMD_ISR_Timer.hpp>
+//#include <SAMDTimerInterrupt.h>
+//#include <SAMDTimerInterrupt.hpp>
+//#include <SAMD_ISR_Timer.h>
+//#include <SAMD_ISR_Timer.hpp>
 
 // Radio
 #include "RF24.h"
@@ -15,10 +15,13 @@
 #include <Arduino_LSM6DS3.h>
 #include <FIR.h>
 
-static constexpr float kBrakeLightActivateThreshold{0.001};  // [g]
-static constexpr float kBrakeLightDeactivateThreshold{-0.0}; // [g]
+static constexpr double kDegToRad{3.1416/180};
+
+static constexpr double kBrakeLightActivateThreshold{-0.001}; // [g]
+static constexpr double kBrakeLightDeactivateThreshold{0.0};  // [g]
 static constexpr int kImuFilterWindowTime{100};  // [ms]
 static constexpr int kBrakeLightExtendTime{200}; // [ms]
+static constexpr double kMountingAngle{20*kDegToRad}; // [deg]
 
 #define LEFT_INDICATOR_PIN 2
 #define RIGHT_INDICATOR_PIN 3
@@ -101,18 +104,30 @@ void radioInterrupt(void) {
 void imuInterrupt(void) {
   static unsigned int light_extend_countdown{0};
   
-  static float x, y, z;
+  static float raw_x, raw_y, raw_z;
   if (IMU.accelerationAvailable()) {
-    IMU.readAcceleration(x, y, z);
+    IMU.readAcceleration(raw_x, raw_y, raw_z);
   }
-  z = filter.processReading(z);
+  static float flipped_x, flipped_y, flipped_z;
+  flipped_x = raw_z;
+  flipped_y = -raw_x;
+  flipped_z = -raw_y;
+  //Serial.println("flipped x: " + String(flipped_x) + ", flipped y: " + String(flipped_y) + ", flipped z: " + String(flipped_z) + ", countdown: " + String(light_extend_countdown));
+
+  // Orient measurements into bicycle frame
+  static float x, y, z;
+  x = flipped_x * cos(kMountingAngle) - flipped_z * sin(kMountingAngle);
+  y = flipped_y;
+  z = flipped_x * sin(kMountingAngle) + flipped_z * cos(kMountingAngle);
+
+  x = filter.processReading(x);
   
   //Serial.println("x: " + String(x) + ", y: " + String(y) + ", z: " + String(z) + ", countdown: " + String(light_extend_countdown));
   
-  if (-z > kBrakeLightActivateThreshold) {
+  if (x > kBrakeLightActivateThreshold) {
     digitalWrite(BRAKE_LIGHT_PIN, HIGH);
     light_extend_countdown = kBrakeLightExtendTime/kImuInterruptPeriod;
-  } else if (-z < kBrakeLightDeactivateThreshold) {
+  } else if (x < kBrakeLightDeactivateThreshold) {
 
     if (light_extend_countdown == 0) {
       digitalWrite(BRAKE_LIGHT_PIN, LOW);
