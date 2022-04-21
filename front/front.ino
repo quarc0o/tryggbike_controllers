@@ -26,10 +26,10 @@ const uint64_t pipe =
     0xE6E6A43BE6E5; // Needs to be the same for communicating between 2 NRF24L01
 
 void setup(void) {
-  //Serial.begin(9600);
+  // Serial.begin(9600);
 
-  pinMode(LEFT_BUTTON, INPUT_PULLDOWN);
-  pinMode(RIGHT_BUTTON, INPUT_PULLDOWN);
+  pinMode(LEFT_BUTTON, INPUT_PULLUP);
+  pinMode(RIGHT_BUTTON, INPUT_PULLUP);
   pinMode(LEFT_INDICATOR_PIN, OUTPUT);
   pinMode(RIGHT_INDICATOR_PIN, OUTPUT);
   
@@ -38,7 +38,9 @@ void setup(void) {
   digitalWrite(FRONT_OUTER_LIGHTS, LOW);
   digitalWrite(FRONT_CENTER_LIGHTS, LOW);
 
-  radio.begin();               // Start the NRF24L01
+  if (!radio.begin()) { // Start the NRF24L01
+    // Serial.println("Radio hardware not responding!");
+  }
   radio.openWritingPipe(pipe); // Get NRF24L01 ready to transmit
 }
 
@@ -50,17 +52,17 @@ void loop(void) {
 
   // Delay per iteration
   static constexpr unsigned int delay_time{10};   // [ms]
-  static constexpr unsigned int cycle_length{34}; // iterations
+  static constexpr unsigned int cycle_length{60}; // iterations
   counter = (counter + 1) % cycle_length;
   delay(delay_time);
 
-  if (digitalRead(LEFT_BUTTON) == HIGH) {
+  if (digitalRead(LEFT_BUTTON) == LOW) {
     if (!left_turn_indicator_activated) {
       counter = 0;
     }
     left_turn_indicator_activated = true;
     right_turn_indicator_activated = false;
-  } else if (digitalRead(RIGHT_BUTTON) == HIGH) {
+  } else if (digitalRead(RIGHT_BUTTON) == LOW) {
     if (!right_turn_indicator_activated) {
       counter = 0;
     }
