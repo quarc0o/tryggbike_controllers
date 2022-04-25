@@ -1,20 +1,21 @@
 #include <stdint.h>
 
-// Interrupt
-//#include <SAMDTimerInterrupt.h>
-//#include <SAMDTimerInterrupt.hpp>
-//#include <SAMD_ISR_Timer.h>
-//#include <SAMD_ISR_Timer.hpp>
+// Arduino libraries from the Arduino IDE 1.8.15's "Library manager"
+// "RF24" version 1.4.2
+// "Arduino_LSM6DS3" version 1.0.0
+// "FIR filter" version 0.1.1
 
 // Radio
 #include "RF24.h"
 #include "SPI.h"
 #include "nRF24L01.h"
 
-// Accelerometer
+// Accelerometer/IMU
 #include <Arduino_LSM6DS3.h>
-#include <FIR.h>
 
+// Filter
+#include <FIR.h>
+  
 static constexpr double kDegToRad{3.1416/180};
 
 static constexpr double kBrakeLightActivateThreshold{-0.15}; // [g]
@@ -40,9 +41,7 @@ RF24 radio(9, 10); // NRF24L01 used SPI pins + Pin 9 and 10 on the NANO
 const uint64_t pipe = 0xE6E6A43BE6E5;
 
 static constexpr long kHardwareTimerMs{1000L};
-//SAMDTimer timer{TIMER_TC3};
 static constexpr long kTimerMs{static_cast<long>(1000.0 / kHardwareTimerMs)};
-//SAMD_ISR_Timer isr_timer;
 
 static constexpr long kRadioInterruptPeriod{10};  // [ms]
 static constexpr long kImuInterruptPeriod{10};    // [ms]
@@ -50,8 +49,6 @@ static constexpr long kImuInterruptPeriod{10};    // [ms]
 
 static constexpr size_t kFilterWindow{kImuFilterWindowTime / kImuInterruptPeriod};
 static FIR<float, kFilterWindow> filter;
-
-//void timerHandler(void) { isr_timer.run(); }
 
 void radioInterrupt(void);
 void imuInterrupt(void);

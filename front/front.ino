@@ -1,5 +1,8 @@
 #include <stdint.h>
 
+// Libraries from the Arduino IDE 1.8.15's "Library manager"
+// "RF24" version 1.4.2
+
 // Radio
 #include "RF24.h"
 #include "SPI.h"
