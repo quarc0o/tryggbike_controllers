@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-// Arduino libraries from the Arduino IDE 1.8.15's "Library manager"
+// Libraries from the Arduino IDE 1.8.15's "Library manager"
 // "RF24" version 1.4.2
 // "Arduino_LSM6DS3" version 1.0.0
 // "FIR filter" version 0.1.1
@@ -18,11 +18,11 @@
   
 static constexpr double kDegToRad{3.1416/180};
 
-static constexpr double kBrakeLightActivateThreshold{-0.15}; // [g]
-static constexpr double kBrakeLightDeactivateThreshold{-0.09};  // [g]
-static constexpr int kImuFilterWindowTime{100};  // [ms]
+static constexpr double kBrakeLightActivateThreshold{-0.17}; // [g]
+static constexpr double kBrakeLightDeactivateThreshold{-0.11};  // [g]
+static constexpr int kImuFilterWindowTime{150};  // [ms]
 static constexpr int kBrakeLightExtendTime{200}; // [ms]
-static constexpr double kMountingAngle{17.75*kDegToRad}; // [deg]
+static constexpr double kMountingAngle{21.25*kDegToRad}; // [deg]
 
 #define LEFT_INDICATOR_PIN 2
 #define RIGHT_INDICATOR_PIN 3
